@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, InvalidEvent, FormEvent, ChangeEvent } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
@@ -7,7 +7,21 @@ import { Comment } from './Comment';
 
 import styles from './Post.module.css';
 
-export function Post({ author, publishedAt, content }) {
+export interface PostProps {
+  id?: number;
+  author: {
+    avatarUrl: string;
+    name: string;
+    role: string;
+  };
+  publishedAt: Date;
+  content: {
+    type: 'paragraph' | 'link';
+    content: string;
+  }[];
+}
+
+export function Post({ author, publishedAt, content }: PostProps) {
   const [comments, setComments] = useState([
     {
       id: 1,
@@ -36,7 +50,7 @@ export function Post({ author, publishedAt, content }) {
     addSuffix: true,
   });
 
-  function handleCreateNewComment(event) {
+  function handleCreateNewComment(event: FormEvent) {
     event.preventDefault();
 
     setComments((prevValue) => [
@@ -52,18 +66,18 @@ export function Post({ author, publishedAt, content }) {
     setNewCommentText('');
   }
 
-  function handleNewCommentTextChange(event) {
+  function handleNewCommentTextChange(event: ChangeEvent<HTMLTextAreaElement>) {
     event.target.setCustomValidity('');
     setNewCommentText(event.target.value);
   }
 
-  function handleNewCommentInvalid(event) {
+  function handleNewCommentInvalid(event: InvalidEvent<HTMLTextAreaElement>) {
     event.target.setCustomValidity(
       'O campo de comentário não pode ficar vazio'
     );
   }
 
-  function deleteComment(id) {
+  function deleteComment(id: number) {
     setComments((prevValue) =>
       prevValue.filter((comment) => comment.id !== id)
     );

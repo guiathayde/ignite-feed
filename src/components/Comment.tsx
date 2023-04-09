@@ -7,7 +7,22 @@ import { Avatar } from './Avatar';
 
 import styles from './Comment.module.css';
 
-export function Comment({ author, publishedAt, content, onDeleteComment }) {
+interface CommentProps {
+  author: {
+    avatarUrl: string;
+    name: string;
+  };
+  publishedAt: Date;
+  content: string;
+  onDeleteComment: () => void;
+}
+
+export function Comment({
+  author,
+  publishedAt,
+  content,
+  onDeleteComment,
+}: CommentProps) {
   const [likes, setLikes] = useState(0);
 
   const publishedDateFormatted = format(
