@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
@@ -7,6 +8,21 @@ import { Comment } from './Comment';
 import styles from './Post.module.css';
 
 export function Post({ author, publishedAt, content }) {
+  const [comments, setComments] = useState([
+    {
+      id: 1,
+      author: {
+        avatarUrl:
+          'https://cdn.pixabay.com/photo/2016/08/20/05/38/avatar-1606916_960_720.png',
+        name: 'João da Silva',
+        role: 'Desenvolvedor',
+      },
+      content: 'Muito bom Devon, parabéns!! 👏👏',
+      publishedAt: new Date('2023-04-05 20:47:30'),
+    },
+  ]);
+  const [newCommentText, setNewCommentText] = useState('');
+
   const publishedDateFormatted = format(
     publishedAt,
     "d 'de' LLLL 'às' HH:mm'h'",
@@ -19,6 +35,41 @@ export function Post({ author, publishedAt, content }) {
     locale: ptBR,
     addSuffix: true,
   });
+
+  function handleCreateNewComment(event) {
+    event.preventDefault();
+
+    setComments((prevValue) => [
+      ...prevValue,
+      {
+        id: prevValue.length + 1,
+        author,
+        content: newCommentText,
+        publishedAt: new Date(),
+      },
+    ]);
+
+    setNewCommentText('');
+  }
+
+  function handleNewCommentTextChange(event) {
+    event.target.setCustomValidity('');
+    setNewCommentText(event.target.value);
+  }
+
+  function handleNewCommentInvalid(event) {
+    event.target.setCustomValidity(
+      'O campo de comentário não pode ficar vazio'
+    );
+  }
+
+  function deleteComment(id) {
+    setComments((prevValue) =>
+      prevValue.filter((comment) => comment.id !== id)
+    );
+  }
+
+  const isNewCommentEmpty = newCommentText.trim().length === 0;
 
   return (
     <article className={styles.post}>
@@ -40,35 +91,48 @@ export function Post({ author, publishedAt, content }) {
       </header>
 
       <div className={styles.content}>
-        {content.map((line, index) => {
-          if (line.type === 'paragraph') {
-            return <p key={index}>{line.content}</p>;
-          }
-
-          if (line.type === 'link') {
+        {content.map(({ type, content }) => {
+          if (type === 'paragraph') {
+            return <p key={content}>{content}</p>;
+          } else if (type === 'link') {
             return (
-              <p>
-                <a key={index} href='#'>{line.content}</a>
+              <p key={content}>
+                <a href="#">{content}</a>
               </p>
             );
           }
         })}
       </div>
 
-      <form className={styles.commentForm}>
+      <form className={styles.commentForm} onSubmit={handleCreateNewComment}>
         <strong>Deixe seu feedback</strong>
 
-        <textarea placeholder="Deixe seu comentario" />
+        <textarea
+          name="comment"
+          placeholder="Deixe seu comentario"
+          value={newCommentText}
+          onChange={handleNewCommentTextChange}
+          onInvalid={handleNewCommentInvalid}
+          required
+        />
 
         <footer>
-          <button type="submit">Publicar</button>
+          <button type="submit" disabled={isNewCommentEmpty}>
+            Publicar
+          </button>
         </footer>
       </form>
 
       <div className={styles.commentList}>
-        <Comment />
-        <Comment />
-        <Comment />
+        {comments.map(({ id, author, publishedAt, content }) => (
+          <Comment
+            key={id}
+            author={author}
+            publishedAt={publishedAt}
+            content={content}
+            onDeleteComment={() => deleteComment(id)}
+          />
+        ))}
       </div>
     </article>
   );
